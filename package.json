@@ -1,13 +1,17 @@
 {
-  "name": "Test",
-  "description": "Test",
+  "name": "coin-ticker-bot",
+  "description": "coin-ticker-bot",
   "version": "0.0.0",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
   "dependencies": {
+    "bufferutil": "^3.0.3",
     "discord.js": "11.1.0",
-    "request": "2.81.0"
+    "fs": "0.0.1-security",
+    "libsodium-wrappers": "^0.7.2",
+    "request": "2.81.0",
+    "winston": "^2.4.0"
   }
 }
