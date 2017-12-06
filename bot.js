@@ -187,7 +187,7 @@ var doneDate;
 
 setInterval(function () {
 	var hour = new Date().getHours();
-	if (0 <= hour && hour < 1) {
+	if (1 <= hour && hour < 2) {
 		if (outputChannel !== undefined) {
 			if (doneDate === undefined || doneDate != getDayDate()) {
 				doneDate = getDayDate();
