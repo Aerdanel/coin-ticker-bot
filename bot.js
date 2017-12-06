@@ -6,7 +6,11 @@ var fs = require('fs');
 
 var coinList = [];
 var outputPath = '/tmp/';
+var outputChannel;
 
+const allTickUrl = 'https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=0';
+
+var dicoCoins;
 
 client.on('ready', () => {
 	console.log('I am ready!');
@@ -21,9 +25,6 @@ client.on('message', message => {
 
 		args = args.splice(1);
 		switch (cmd) {
-			case 'ping':
-				message.channel.send('la bite !');
-				break;
 			case 'coinlist-add':
 				logger.info(args);
 				var coins = args[0].split(',');
@@ -35,12 +36,12 @@ client.on('message', message => {
 					coinList.push(trim);
 				});
 
-				message.reply('Ajout correctement effectué. \n' + coinList.length + ' coins au total dans la liste.');
+				message.channel.send('Ajout correctement effectué. \n' + coinList.length + ' coins au total dans la liste.');
 				break;
 
 			case 'coinlist-clear':
 				coinList = [];
-				message.reply('Purge effectuée.');
+				message.channel.send('Purge effectuée.');
 
 				logger.info('coinList : ' + coinList.length);
 				break;
@@ -52,64 +53,85 @@ client.on('message', message => {
 					show += '\n' + c;
 				});
 
-				message.reply('Coins actuellement dans la liste : ' + show);
+				message.channel.send('Coins actuellement dans la liste : ' + show);
 				break;
-			// case 'add':
-			// 	logger.info('add: ' + args[0]);
-			// 	addList.push(args[0]);
-			// break;
-			// case 'list':
-			// 	for (i = 0; i < addList.length; i++) {
-			// 		bot.sendMessage({
-			// 			to: channelID,
-			// 			message: addList[i]
-			// 		});
-			// 	}
-			// break;
-			// case 'set-channel':
-			// 	channelIDTickerPost = args[0];
-			// break;
-			// case 'test':
-			// 	var request = require('request');
-			// 	request('https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=EUR', function (error, response, body) {
-			// 	  if (!error && response.statusCode == 200) {
-			// 		console.log(body) // Print the google web page.
 
-			// 		var jsonData = JSON.parse(body);
-			// 		bot.sendMessage({
-			// 			to: channelID,
-			// 			message: 'price_btc : ' + jsonData[0].price_btc + '\nune autre ligne'
-			// 		});
-			// 	  }
-			// 	})
-			// break;
+
+			case 'coinlist-setchannel':
+				outputChannel = args[0];
+				message.channel.send('Channel ID enregistré.')
+				break;
+
+
+
 			case 'coinlist-getprices':
 				logger.info('création du fichier');
 
-				coinlistGetPrices(message);
+				coinlistGetPrices(message.channel.id);
 
-			break;
-			// case 'send':
-			// 	bot.uploadFile({
-			// 			to: channelID,
-			// 			file: '/tmp/file.csv',
-			// 			message: 'un message qu\'il est bien',
-			// 		},
-			// 		function (error, response) {
-			// 				logger.info(error);
-			// 			});
-			// break;
-			// case 'coin-ticker' :
+				break;
 
-			// break;
-			// Just add any case commands if you want to..
+
+			case 'test':
+
+				break;
+
+
+// case 'coin-info':
+
+// if (dicoCoins == undefined || dicoCoins.length == 0) {
+// 	loadDico();
+// }
+
+// //on récupère l'id en fonction du symbol
+// var coinId = dicoCoins[args[0]];
+
+// var coinInfoUrl = 'https://coinmarketcap.com/currencies/';
+
+// request(coinInfoUrl + coinId, function (error, response, body) {
+// 	const $ = cheerio.load(body);
+
+
+
+
+// 			});
+
+// break;
+
+
+
 		}
 	}
 });
 
-function coinlistGetPrices(message){
 
-	request('https://api.coinmarketcap.com/v1/ticker/?convert=EUR', function (error, response, body) {
+
+
+
+function loadDico() {
+
+	request(allTickUrl, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+
+			var data = JSON.parse(body);
+			data.forEach(d => {
+				dicoCoins[d.symbol.toLowerCase()] = d.id;
+			});
+
+		}
+	});
+
+}
+
+
+
+function coinlistGetPrices(channelID) {
+
+	//on essaie de récupérer le channel qui va bien à partir de l'ID
+	var channel = getChannelFromID(channelID);
+
+
+	request(allTickUrl, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 
 			//on va mettre chaque valeur en euro dans la troisième colonne
@@ -135,16 +157,60 @@ function coinlistGetPrices(message){
 
 			fs.writeFile(outputPath + fileName, csvline);
 
-			message.channel.send('Le fichier du jour', { file: outputPath + fileName });
+			channel.send('Le fichier du jour', { file: outputPath + fileName });
 		}
 	})
 
+}
+
+function getChannelFromID(channelID) {
+	for (let index = 0; index < client.channels.array().length; index++) {
+		const c = client.channels.array()[index];
+
+		if (c.id == channelID) {
+			return c;
+		}
+	}
 }
 
 function padZero(str) {
 	var pad = '00';
 	return pad.substring(0, pad.length - str.length) + str;
 }
+
+
+
+
+
+
+var doneDate;
+
+setInterval(function () {
+	var hour = new Date().getHours();
+	if (0 <= hour && hour < 1) {
+		if (outputChannel !== undefined) {
+			if (doneDate === undefined || doneDate != getDayDate()) {
+				doneDate = getDayDate();
+
+				coinlistGetPrices(outputChannel);
+			}
+			else {
+				// logger.info('déjà fait aujourdhui');
+			}
+		}
+		else {
+			// logger.info('Aucun channel défini');
+		}
+
+	}
+}, 1000 * 60 * 5);
+
+function getDayDate() {
+	var date = new Date();
+	return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
+}
+
+
 
 // THIS  MUST  BE  THIS  WAY
 client.login(process.env.BOT_TOKEN);
