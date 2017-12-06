@@ -5,7 +5,7 @@ var logger = require('winston');
 var fs = require('fs');
 
 var coinList = [];
-var outputPath = 'tmp/';
+var outputPath = '/tmp/';
 
 
 client.on('ready', () => {
