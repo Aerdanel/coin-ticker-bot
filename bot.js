@@ -36,8 +36,6 @@ client.on('message', message => {
 				coins.forEach(c => {
 					var trim = c.trim();
 
-					logger.info('c.trim() : ' + c.trim());
-
 					coinList.push(trim);
 				});
 
@@ -67,8 +65,6 @@ client.on('message', message => {
 				message.channel.send('Channel ID enregistré.')
 				break;
 
-
-
 			case 'coinlist-getprices':
 				logger.info('création du fichier');
 
@@ -76,16 +72,29 @@ client.on('message', message => {
 
 				break;
 
+			case 'coinlist-isok':
 
-			case 'test':
+				var erreurs = [];
+
+				if (coinList == undefined || coinList.length == 0) {
+					erreurs.push('La liste des coins est vide.');
+				}
+				if (outputChannel == undefined) {
+					erreurs.push('Le channel de sortie du fichier n\'est pas paramétré.');
+				}
+
+
+				if (erreurs.length == 0) {
+					message.channel.send('Le paramétrage est correct.')
+				}
+				else {
+					message.channel.send(erreurs);
+				}
 
 				break;
 
 
 			case 'coin-info':
-
-				channelToRespond = message.channel;
-				coinInfoSymbol = args[0];
 
 				if (dicoCoins == undefined || dicoCoins.size == 0) {
 					loadDico(getCoinInfo);
@@ -95,6 +104,59 @@ client.on('message', message => {
 				}
 
 				break;
+
+			case 'coin-ticker':
+
+				if (dicoCoins == undefined || dicoCoins.size == 0) {
+					loadDico(getCoinTicker);
+				}
+				else {
+					getCoinTicker();
+				}
+
+				break;
+
+case 'help':
+
+var str = [];
+
+str.push('La liste des commandes disponibles est la suivante : ');
+
+
+str.push('- **coinlist-add** => Permet d\'ajouter des coins à la liste pour la récupération automatique nocturnes des cours. Les coins peuvent être ajoutées en double, et sont traitées dans l\'ordre d\'ajout. ');
+str.push('\tSyntaxe : **!coinlist-add** _coin1,coin2,coin3..._');
+
+str.push('- **coinlist-clear** => Permet de vider la liste des coins.');
+str.push('\tSyntaxe : **!coinlist-clear**');
+
+str.push('- **coinlist-show** => Permet d\'afficher la liste des coins pour lesquelles le cours va être récupéré durant la nuit.');
+str.push('\tSyntaxe : **!coinlist-show**');
+
+str.push('- **coinlist-setchannel** => Permet de paramétrer le channel dans lequel le fichier contenant les cours sera envoyé une fois généré.');
+str.push('\tSyntaxe : **!coinlist-setchannel** _channelID_');
+
+str.push('- **coinlist-getprices** => Permet d\'obtenir le cours des coins de la liste, dans un fichier envoyé sur le channel courant.');
+str.push('\tSyntaxe : **!coinlist-getprices**');
+
+str.push('- **coinlist-isok => Permet de savoir si tout est paramétré correctement pour la récupération nocturne du cours des coins.**');
+str.push('\tSyntaxe : **!coinlist-isok**');
+
+str.push('- **coin-info** => Permet d\'obtenir, dans le channel courant, les différents liens de la coin, de la page de coinmarketcap (lien du site, des explorers, de l\'annonce...).');
+str.push('\tSyntaxe : **!coin-info** _coin_');
+
+str.push('- **coin-ticker** => Permet d\'obtenir les informations du ticker de la coin passée en paramètre.');
+str.push('\tSyntaxe : **!coin-ticker** _coin_');
+
+str.push('- **help** => Permet d\'obtenir de l\'aide concernant les différentes commandes de ce bot.');
+str.push('\tSyntaxe : **!help**');
+
+message.channel.send(str);
+
+
+break;
+
+
+
 
 
 
@@ -181,7 +243,70 @@ function getCoinInfo() {
 }
 
 
+function getCoinTicker() {
+	var coinId;
+	if (args.length == 0) {
+		lastMessage.channel.send('Erreur : aucune coin renseignée.');
+	}
+	else {
+		coinId = dicoCoins.get(args[0]);
 
+		if (coinId == undefined) {
+			lastMessage.channel.send('Erreur : coin introuvable. Merci de renseigner le symbole de la coin.');
+		}
+		else {
+			//Si tout est bon, on va balancer la requête et traiter le tout !
+
+			var coinTickerUrl = 'https://api.coinmarketcap.com/v1/ticker/' + coinId + '/?convert=EUR';
+
+			var requestOptions = {
+				uri: coinTickerUrl,
+				json: true
+			}
+
+			request(requestOptions)
+				.then(function (jsonData) {
+					if (jsonData.error == undefined) {
+						var ticker = jsonData[0];
+
+						var strings = [];
+
+						var formater = new Intl.NumberFormat("fr-FR", {
+							maximumFractionDigits: 20,
+							maximumSignificantDigits: 21
+						});
+
+						strings.push('**' + ticker.name + '**');
+						strings.push('Symbol : ' + ticker.symbol);
+						strings.push('Price EUR : ' + formatString(formater.format(ticker.price_eur)));
+						strings.push('Price BTC : ' + formatString(formater.format(ticker.price_btc)));
+						strings.push('Price USD : ' + formatString(formater.format(ticker.price_usd)));
+						strings.push('Percent change 1h : ' + ticker.percent_change_1h);
+						strings.push('Percent change 24h : ' + ticker.percent_change_24h);
+						strings.push('Percent change 7j : ' + ticker.percent_change_7d);
+						strings.push('24h volume USD : ' + formatString(formater.format(ticker["24h_volume_usd"])));
+						strings.push('Market cap USD : ' + formatString(formater.format(ticker.market_cap_usd)));
+						strings.push('Available supply : ' + formatString(formater.format(ticker.available_supply)));
+						strings.push('Total supply : ' + formatString(formater.format(ticker.total_supply)));
+						strings.push('Max supply : ' + formatString(formater.format(ticker.max_supply)));
+						strings.push('24h volume EUR : ' + formatString(formater.format(ticker['24h_volume_eur'])));
+						strings.push('Market cap EUR : ' + formatString(formater.format(ticker.market_cap_eur)));
+
+						lastMessage.channel.send(strings);
+
+					}
+					else {
+						lastMessage.channel.send('Erreur : coin non trouvée sur coinmarketcap. Url : ' + coinTickerUrl);
+					}
+				});
+		}
+	}
+}
+
+
+function formatString(str) {
+	return str.split(',').join(' ');
+}
 
 
 function coinlistGetPrices(channelID) {
