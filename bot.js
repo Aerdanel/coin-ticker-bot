@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const request = require('request');
+const request = require('request-promise');
+const cheerio = require('cheerio');
 var logger = require('winston');
 var fs = require('fs');
 
@@ -12,15 +13,19 @@ const allTickUrl = 'https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=0
 
 var dicoCoins;
 
+var lastMessage;
+var args;
+
 client.on('ready', () => {
 	console.log('I am ready!');
 });
 
 client.on('message', message => {
-	logger.info(message.content);
+	lastMessage = message;
+	// logger.info(message.content);
 
 	if (message.content.substring(0, 1) == '!') {
-		var args = message.content.substring(1).split(' ');
+		args = message.content.substring(1).split(' ');
 		var cmd = args[0];
 
 		args = args.splice(1);
@@ -77,26 +82,19 @@ client.on('message', message => {
 				break;
 
 
-// case 'coin-info':
+			case 'coin-info':
 
-// if (dicoCoins == undefined || dicoCoins.length == 0) {
-// 	loadDico();
-// }
+				channelToRespond = message.channel;
+				coinInfoSymbol = args[0];
 
-// //on récupère l'id en fonction du symbol
-// var coinId = dicoCoins[args[0]];
+				if (dicoCoins == undefined || dicoCoins.size == 0) {
+					loadDico(getCoinInfo);
+				}
+				else {
+					getCoinInfo();
+				}
 
-// var coinInfoUrl = 'https://coinmarketcap.com/currencies/';
-
-// request(coinInfoUrl + coinId, function (error, response, body) {
-// 	const $ = cheerio.load(body);
-
-
-
-
-// 			});
-
-// break;
+				break;
 
 
 
@@ -108,20 +106,81 @@ client.on('message', message => {
 
 
 
-function loadDico() {
+function loadDico(postTreatment) {
+	logger.info('chargement du dictionnaire des coins');
+
+	if (postTreatment == undefined) {
+		postTreatment = function () { };
+	}
+
+
+	dicoCoins = new Map();
 
 	request(allTickUrl, function (error, response, body) {
+		logger.info('lancement de la requête fait');
 		if (!error && response.statusCode == 200) {
-
 			var data = JSON.parse(body);
 			data.forEach(d => {
-				dicoCoins[d.symbol.toLowerCase()] = d.id;
+
+				dicoCoins.set(d.symbol.toLowerCase(), d.id);
+
 			});
 
+			logger.info('chargement dico fini');
 		}
-	});
+		else {
+			logger.error('ERREUR : ' + error);
+		}
+	}).then(postTreatment);
 
 }
+
+
+function getCoinInfo() {
+
+	var coinId = dicoCoins.get(args[0].toLowerCase());
+
+	var coinInfoUrl = 'https://coinmarketcap.com/currencies/' + coinId;
+
+	logger.info(coinInfoUrl);
+	logger.info(args[0].toLowerCase());
+
+	var requestOptions = {
+		uri: coinInfoUrl,
+		transform: function (body) {
+			return cheerio.load(body);
+		}
+	}
+
+
+	request(requestOptions)
+		.then(function ($) {
+
+			//récupération de l'url du logo
+			var logoUrl = $('.currency-logo-32x32').attr('src');
+
+			// //on récupère les différents liens
+			var links = [];
+			links.push('**' + coinId + '**');
+			links.push('**Coinmarketcap** : ' + coinInfoUrl);
+
+			$('body > div.container > div > div.col-lg-10 > div.row.bottom-margin-2x > div.col-sm-4.col-sm-pull-8 > ul > li > a').toArray().forEach(a => {
+				var href = $(a).attr('href');
+				var text = $(a).text();
+				links.push('**' + text + '** : ' + href);
+			});
+
+
+			lastMessage.channel.send(links, { file: logoUrl });
+		})
+		.catch(function (err) {
+
+			lastMessage.channel.send('Erreur lors de la récupération des informations');
+		});
+
+}
+
+
 
 
 
@@ -135,6 +194,7 @@ function coinlistGetPrices(channelID) {
 		if (!error && response.statusCode == 200) {
 
 			//on va mettre chaque valeur en euro dans la troisième colonne
+			var csvheader = '';
 			var csvline = '';
 			var data = JSON.parse(body);
 
@@ -150,12 +210,13 @@ function coinlistGetPrices(channelID) {
 			coinList.forEach(coin => {
 				data.forEach(d => {
 					if (coin.toLowerCase() == d.symbol.toLowerCase()) {
+						csvheader += ';;' + coin.toLowerCase() + ';';
 						csvline += ';;' + d.price_eur + ';';
 					}
 				});
 			});
 
-			fs.writeFile(outputPath + fileName, csvline);
+			fs.writeFile(outputPath + fileName, csvheader + '\n' + csvline);
 
 			channel.send('Le fichier du jour', { file: outputPath + fileName });
 		}
@@ -187,7 +248,7 @@ var doneDate;
 
 setInterval(function () {
 	var hour = new Date().getHours();
-	if (1 <= hour && hour < 2) {
+	if (0 <= hour && hour < 1) {
 		if (outputChannel !== undefined) {
 			if (doneDate === undefined || doneDate != getDayDate()) {
 				doneDate = getDayDate();
