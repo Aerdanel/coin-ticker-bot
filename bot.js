@@ -351,7 +351,7 @@ function coinlistGetPrices(channelID) {
 				});
 			});
 
-			fs.writeFile(outputPath + fileName, csvheader + '\n' + csvline);
+			fs.writeFileSync(outputPath + fileName, csvheader + '\n' + csvline);
 
 			channel.send('Le fichier du jour', { file: outputPath + fileName });
 		}
