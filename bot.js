@@ -40,24 +40,24 @@ client.on('message', message => {
 
 			args = args.splice(1);
 			switch (cmd) {
-				case 'coinlist-add':
-					logger.info(args);
-					var coins = args[0].split(',');
-					coins.forEach(c => {
-						var trim = c.trim();
+				// case 'coinlist-add':
+				// 	logger.info(args);
+				// 	var coins = args[0].split(',');
+				// 	coins.forEach(c => {
+				// 		var trim = c.trim();
 
-						coinList.push(trim);
-					});
+				// 		coinList.push(trim);
+				// 	});
 
-					message.channel.send('Ajout correctement effectué. \n' + coinList.length + ' coins au total dans la liste.');
-					break;
+				// 	message.channel.send('Ajout correctement effectué. \n' + coinList.length + ' coins au total dans la liste.');
+				// 	break;
 
-				case 'coinlist-clear':
-					coinList = [];
-					message.channel.send('Purge effectuée.');
+				// case 'coinlist-clear':
+				// 	coinList = [];
+				// 	message.channel.send('Purge effectuée.');
 
-					logger.info('coinList : ' + coinList.length);
-					break;
+				// 	logger.info('coinList : ' + coinList.length);
+				// 	break;
 
 				case 'coinlist-show':
 					var show = '';
@@ -70,10 +70,10 @@ client.on('message', message => {
 					break;
 
 
-				case 'coinlist-setchannel':
-					outputChannel = args[0];
-					message.channel.send('Channel ID enregistré.')
-					break;
+				// case 'coinlist-setchannel':
+				// 	outputChannel = args[0];
+				// 	message.channel.send('Channel ID enregistré.')
+				// 	break;
 
 				case 'coinlist-getprices':
 					logger.info('création du fichier');
@@ -133,17 +133,17 @@ client.on('message', message => {
 					str.push('La liste des commandes disponibles est la suivante : ');
 
 
-					str.push('- **coinlist-add** => Permet d\'ajouter des coins à la liste pour la récupération automatique nocturnes des cours. Les coins peuvent être ajoutées en double, et sont traitées dans l\'ordre d\'ajout. ');
-					str.push('\tSyntaxe : **!coinlist-add** _coin1,coin2,coin3..._');
+					// str.push('- **coinlist-add** => Permet d\'ajouter des coins à la liste pour la récupération automatique nocturnes des cours. Les coins peuvent être ajoutées en double, et sont traitées dans l\'ordre d\'ajout. ');
+					// str.push('\tSyntaxe : **!coinlist-add** _coin1,coin2,coin3..._');
 
-					str.push('- **coinlist-clear** => Permet de vider la liste des coins.');
-					str.push('\tSyntaxe : **!coinlist-clear**');
+					// str.push('- **coinlist-clear** => Permet de vider la liste des coins.');
+					// str.push('\tSyntaxe : **!coinlist-clear**');
 
 					str.push('- **coinlist-show** => Permet d\'afficher la liste des coins pour lesquelles le cours va être récupéré durant la nuit.');
 					str.push('\tSyntaxe : **!coinlist-show**');
 
-					str.push('- **coinlist-setchannel** => Permet de paramétrer le channel dans lequel le fichier contenant les cours sera envoyé une fois généré.');
-					str.push('\tSyntaxe : **!coinlist-setchannel** _channelID_');
+					// str.push('- **coinlist-setchannel** => Permet de paramétrer le channel dans lequel le fichier contenant les cours sera envoyé une fois généré.');
+					// str.push('\tSyntaxe : **!coinlist-setchannel** _channelID_');
 
 					str.push('- **coinlist-getprices** => Permet d\'obtenir le cours des coins de la liste, dans un fichier envoyé sur le channel courant.');
 					str.push('\tSyntaxe : **!coinlist-getprices**');
