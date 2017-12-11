@@ -5,9 +5,9 @@ const cheerio = require('cheerio');
 var logger = require('winston');
 var fs = require('fs');
 
-var coinList = [];
+var coinList = process.env.COINLIST.split(',');
 var outputPath = '/tmp/';
-var outputChannel;
+var outputChannel = process.env.OUTPUT_CHANNEL;
 
 const allTickUrl = 'https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=0';
 
