@@ -24,7 +24,10 @@ client.on('message', (message) => {
     lastMessage = message;
     // logger.info(message.content);
     if (message.content.substring(0, 1) == '!') {
-        if (message.author.id != '114858575276408834' && message.author.id != '138627869957029888') {
+        if (message.author.id != '114858575276408834'
+            && message.author.id != '138627869957029888'
+            && message.author.id != '155799926226288640'
+            && message.author.id != '379591303593197568') {
         }
         else {
             args = message.content.substring(1).split(' ');
