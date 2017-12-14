@@ -1,9 +1,14 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
+// const Discord = require('discord.js');
+const client = new discord_js_1.Client();
 const request = require('request-promise');
 const cheerio = require('cheerio');
 var logger = require('winston');
 var fs = require('fs');
+var moment = require('moment-timezone');
+var async = require('async');
 
 var coinList = process.env.COINLIST.split(',');
 var outputPath = '/tmp/';
