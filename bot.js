@@ -14,21 +14,22 @@ var coinList = process.env.COINLIST.split(',');
 var outputPath = '/tmp/';
 var outputChannel = process.env.OUTPUT_CHANNEL;
 
+var outputTwitterChannel = process.env.OUTPUT_TWITTER_CHANNEL;
+var activateTwitterFeed = process.env.ACTIVATE_TWITTER_FEED;
+
 const allTickUrl = 'https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=0';
 
 var dicoCoins;
-
 var lastMessage;
 var args;
-
 client.on('ready', () => {
-	console.log('I am ready!');
+    console.log('I am ready!');
 });
-
 client.on('message', (message) => {
     lastMessage = message;
     // logger.info(message.content);
     if (message.content.substring(0, 1) == '!') {
+        //kiwi, moi, darine1, darine2
         if (message.author.id != '114858575276408834'
             && message.author.id != '138627869957029888'
             && message.author.id != '155799926226288640'
@@ -39,20 +40,6 @@ client.on('message', (message) => {
             var cmd = args[0];
             args = args.splice(1);
             switch (cmd) {
-                // case 'coinlist-add':
-                // 	logger.info(args);
-                // 	var coins = args[0].split(',');
-                // 	coins.forEach(c => {
-                // 		var trim = c.trim();
-                // 		coinList.push(trim);
-                // 	});
-                // 	message.channel.send('Ajout correctement effectué. \n' + coinList.length + ' coins au total dans la liste.');
-                // 	break;
-                // case 'coinlist-clear':
-                // 	coinList = [];
-                // 	message.channel.send('Purge effectuée.');
-                // 	logger.info('coinList : ' + coinList.length);
-                // 	break;
                 case 'coinlist-show':
                     var show = '';
                     coinList.forEach(c => {
@@ -60,10 +47,6 @@ client.on('message', (message) => {
                     });
                     message.channel.send('Coins actuellement dans la liste : ' + show);
                     break;
-                // case 'coinlist-setchannel':
-                // 	outputChannel = args[0];
-                // 	message.channel.send('Channel ID enregistré.')
-                // 	break;
                 case 'coinlist-getprices':
                     logger.info('création du fichier');
                     coinlistGetPrices(message.channel.id);
@@ -295,6 +278,7 @@ function padZero(str) {
     return pad.substring(0, pad.length - str.length) + str;
 }
 var doneDate;
+//Génération du fichier
 setInterval(function () {
     var hour = new Date().getHours();
     if (0 <= hour && hour < 1) {
@@ -312,10 +296,46 @@ setInterval(function () {
         }
     }
 }, 1000 * 60 * 5);
+var lastTweetCheck = Date.now();
+//Récupération des tweets
+setInterval(function () {
+    if (activateTwitterFeed = '1') {
+        var requestOptions = {
+            uri: 'https://twitter.com/MinigunMaxifun',
+            transform: function (body) {
+                return cheerio.load(body);
+            }
+        };
+        var tweetsToRepost = [];
+        request(requestOptions)
+            .then(function ($) {
+            var tweetList = $('#timeline div.stream li.stream-item:not(".js-pinned")').toArray();
+            tweetList.forEach((t) => {
+                // on test si c'est un retweet ou pas !
+                if ($(t).find('div').first().data('retweeter') == undefined) {
+                    var timestamp = $(t).find('span._timestamp.js-short-timestamp').data('time-ms') * 1;
+                    //si c'est un nouveau tweet
+                    if (timestamp > lastTweetCheck) {
+                        //on l'ajoute à la liste !
+                        var permalink = $(t).find('div').first().data('permalink-path');
+                        tweetsToRepost.push(permalink);
+                    }
+                }
+            });
+            var channel = getChannelFromID(outputTwitterChannel);
+            tweetsToRepost.reverse();
+            tweetsToRepost.forEach((t) => {
+                channel.send('https://twitter.com' + t);
+            });
+        });
+        lastTweetCheck = Date.now();
+    }
+}, 1000 * 60);
 function getDayDate() {
     var date = new Date();
     return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
 }
+
 
 
 
