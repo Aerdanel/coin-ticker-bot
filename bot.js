@@ -299,7 +299,7 @@ setInterval(function () {
 var lastTweetCheck = Date.now();
 //Récupération des tweets
 setInterval(function () {
-    if (activateTwitterFeed = '1') {
+    if (activateTwitterFeed == '1') {
         var requestOptions = {
             uri: 'https://twitter.com/MinigunMaxifun',
             transform: function (body) {
