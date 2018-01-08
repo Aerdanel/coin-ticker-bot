@@ -268,9 +268,11 @@ function getChannelFromID(channelID) {
     for (let index = 0; index < client.channels.array().length; index++) {
         const c = client.channels.array()[index];
         if (c.id == channelID) {
+            logger.info('channel trouvé !');
             return c;
         }
     }
+    logger.info('channel non trouvé !');
     return undefined;
 }
 function padZero(str) {
@@ -299,9 +301,13 @@ setInterval(function () {
 var lastTweetCheck = Date.now();
 //Récupération des tweets
 setInterval(function () {
+    logger.info('tick');
+    logger.info('lasttweetCheck: ' + lastTweetCheck);
     if (activateTwitterFeed == '1') {
+        logger.info('on check les tweets');
         var requestOptions = {
-            uri: 'https://twitter.com/MinigunMaxifun',
+            // uri: 'https://twitter.com/MinigunMaxifun',
+            uri: 'https://twitter.com/Aerdanel',
             transform: function (body) {
                 return cheerio.load(body);
             }
@@ -325,12 +331,12 @@ setInterval(function () {
             var channel = getChannelFromID(outputTwitterChannel);
             tweetsToRepost.reverse();
             tweetsToRepost.forEach((t) => {
-                channel.send('https://twitter.com' + t);
+                channel.send(lastTweetCheck + '   https://twitter.com' + t);
             });
+            lastTweetCheck = Date.now();
         });
-        lastTweetCheck = Date.now();
     }
-}, 1000 * 60);
+}, 1000 * 5);
 function getDayDate() {
     var date = new Date();
     return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
