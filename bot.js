@@ -351,6 +351,9 @@ function getDayDate() {
     var date = new Date();
     return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
 }
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
 
 
 
