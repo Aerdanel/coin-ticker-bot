@@ -120,6 +120,22 @@ client.on('message', (message) => {
                     }
                     message.reply(output + ' :mockingbob:');
                     break;
+                case 'shuffle':
+                    var phrase = message.content.substring(message.content.indexOf(' ') + 1);
+                    //on prend la phrase, on la découpe par espace et on fait du random - 1 pour récupérer des mots
+                    var mots = phrase.split(" ");
+                    var output = '';
+                    var entiers = [];
+                    for (var i = 0; i < mots.length;) {
+                        var rnd = getRandomInt(mots.length);
+                        if (!entiers.includes(rnd)) {
+                            output += mots[rnd] + " ";
+                            entiers.push(rnd);
+                            i++;
+                        }
+                    }
+                    message.reply(output);
+                    break;
                 default:
                     message.channel.send('Commande non reconnue.');
                     break;
