@@ -136,6 +136,26 @@ client.on('message', (message) => {
                     }
                     message.reply(output);
                     break;
+                case 'shufflec':
+                    var phrase = message.content.substring(message.content.indexOf(' ') + 1);
+                    //on prend la phrase, on la découpe par espace et on fait du random - 1 pour récupérer des mots
+                    var mots = phrase.split(" ");
+                    var output = '';
+                    for (var i = 0; i < mots.length; i++) {
+                        var mot = mots[i];
+                        var entiers = [];
+                        for (var j = 0; j < mot.length;) {
+                            var rnd = getRandomInt(mot.length);
+                            if (!entiers.includes(rnd)) {
+                                output += mot[rnd];
+                                entiers.push(rnd);
+                                j++;
+                            }
+                        }
+                        output += " ";
+                    }
+                    message.reply(output);
+                    break;
                 default:
                     message.channel.send('Commande non reconnue.');
                     break;
