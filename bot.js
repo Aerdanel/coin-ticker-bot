@@ -1,15 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-// const Discord = require('discord.js');
 const client = new discord_js_1.Client();
 const request = require('request-promise');
 const cheerio = require('cheerio');
 var logger = require('winston');
-var fs = require('fs');
-var moment = require('moment-timezone');
-var async = require('async');
-var outputPath = './tmp/';
+var idMe = '138627869957029888';
 var outputChannel = '386846479966404618';
 var outputTwitterChannel = '386846479966404618';
 var activateTwitterFeed = 1;
@@ -23,11 +19,10 @@ client.on('ready', () => {
 });
 client.on('message', (message) => {
     lastMessage = message;
-    // logger.info(message.content);
     if (message.content.substring(0, 1) == '!') {
         //kiwi, moi, darine1, darine2
         if (message.author.id != '114858575276408834'
-            && message.author.id != '138627869957029888'
+            && message.author.id != idMe
             && message.author.id != '155799926226288640'
             && message.author.id != '379591303593197568') {
         }
@@ -120,7 +115,7 @@ function padZero(str) {
     var pad = '00';
     return pad.substring(0, pad.length - str.length) + str;
 }
-
+var doneDate;
 var lastTweetCheck = Date.now();
 //Récupération des tweets
 setInterval(function () {
@@ -156,6 +151,12 @@ setInterval(function () {
                     lastTweetCheck = Date.now();
                 });
         } catch (error) {
+            var channel = getChannelFromID(outputChannel);
+            if (channel !== undefined) {
+                channel.send('<@' + idMe + '> Erreur : ```' + error.name + '```');
+                channel.send('```' + error.message + '```');
+            }
+
             logger.error('Erreur survenue pendant la récupération des tweets');
             logger.error(error);
         }
