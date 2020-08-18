@@ -303,7 +303,7 @@ function fetchChapters() {
                         var spanTime = $(c).find('span.chapter-time')[0];
                         var chapterPublicationDate = Date.parse(spanTime.attribs.title);
 
-                        if (lastCheckMangaChapters > chapterPublicationDate) {
+                        if (lastCheckMangaChapters < chapterPublicationDate) {
                             var chapterUrl = $(c).find('a')[0].attribs.href;
                             newChapters.push(chapterUrl);
                         }
