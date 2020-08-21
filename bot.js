@@ -326,6 +326,7 @@ function fetchChapters() {
         logger.error('Erreur survenue pendant la récupération des tweets');
         logger.error(error);
     }
+    lastCheckMangaChapters = new Date();
 }
 
 
