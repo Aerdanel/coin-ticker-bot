@@ -277,7 +277,7 @@ function fetchChapters() {
     logger.info('fetchChapters');
 
     var newChapters = [];
-    console.log(newChapters);
+    logger.info(newChapters);
     var promises = [];
 
     try {
@@ -304,10 +304,10 @@ function fetchChapters() {
                         var spanTime = $(c).find('span.chapter-time')[0];
                         var chapterPublicationDate = Date.parse(spanTime.attribs.title);
 
-                        console.log('lastCheckMangaChapters : ');
-                        console.log(lastCheckMangaChapters);
-                        console.log('chapterPublicationDate : ');
-                        console.log(chapterPublicationDate);
+                        logger.info('lastCheckMangaChapters : ');
+                        logger.info(lastCheckMangaChapters);
+                        logger.info('chapterPublicationDate : ');
+                        logger.info(chapterPublicationDate);
                         
                         
                         if (lastCheckMangaChapters < chapterPublicationDate) {
