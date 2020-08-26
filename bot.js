@@ -47,7 +47,7 @@ var mangas = [
     'https://manganelo.com/manga/read_hunter_x_hunter_manga_online_free2'
 ];
 
-
+var sentChapters = [];
 
 var userMe;
 
@@ -312,7 +312,10 @@ function fetchChapters() {
                             logger.info(chapterPublicationDate);
 
                             var chapterUrl = $(c).find('a')[0].attribs.href;
-                            newChapters.push(chapterUrl);
+                            if (!sentChapters.includes(chapterUrl)) {
+                                newChapters.push(chapterUrl);
+                                sentChapters.push(chapterUrl);
+                            }
                         }
                     });
                 });
