@@ -44,7 +44,8 @@ var mangas = [
     'https://manganelo.com/manga/uv917720',
     'https://manganelo.com/manga/lk918931',
     'https://manganelo.com/manga/ilsi12001567132882',
-    'https://manganelo.com/manga/read_hunter_x_hunter_manga_online_free2'
+    'https://manganelo.com/manga/read_hunter_x_hunter_manga_online_free2',
+    'https://manganelo.com/manga/dokyuu_hentai_hxeros'
 ];
 
 var sentChapters = [];
